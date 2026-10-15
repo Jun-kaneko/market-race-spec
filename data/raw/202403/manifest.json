@@ -1,0 +1,54 @@
+{
+  "year_month": "2024-03",
+  "link_text": "2024年3月分　新潟市中央卸売市場月報",
+  "page_url": "https://www.city.niigata.lg.jp/shisei/seisaku/it/open-data/opendata-keizai/od-ichibageppou/ichiba202403.html",
+  "released": "2024年 4月12日",
+  "note": "本ファイルは、2024年 3月分の青果部及び水産物部の卸売状況等のデータです。",
+  "division_headings": [
+    "青果部",
+    "水産物部"
+  ],
+  "csv_links_total": 16,
+  "divisions": {
+    "R": {
+      "items": {
+        "url": "https://www.city.niigata.lg.jp/shisei/seisaku/it/open-data/opendata-keizai/od-ichibageppou/ichiba202403.files/hinnmokujyuni.csv",
+        "link_text": "品目別取扱高順位表（CSV：3KB）",
+        "original_name": "hinnmokujyuni.csv",
+        "saved": "R11.csv",
+        "bytes": 3139
+      },
+      "origins": {
+        "url": "https://www.city.niigata.lg.jp/shisei/seisaku/it/open-data/opendata-keizai/od-ichibageppou/ichiba202403.files/santijyuni.csv",
+        "link_text": "産地別取扱高順位表（CSV：3KB）",
+        "original_name": "santijyuni.csv",
+        "saved": "R12.csv",
+        "bytes": 3561
+      }
+    },
+    "T": {
+      "items": {
+        "url": "https://www.city.niigata.lg.jp/shisei/seisaku/it/open-data/opendata-keizai/od-ichibageppou/ichiba202403.files/himmokuatukaisui3.csv",
+        "link_text": "品目別取扱高順位表（CSV：5KB）",
+        "original_name": "himmokuatukaisui3.csv",
+        "saved": "T11.csv",
+        "bytes": 5940
+      },
+      "origins": {
+        "url": "https://www.city.niigata.lg.jp/shisei/seisaku/it/open-data/opendata-keizai/od-ichibageppou/ichiba202403.files/santiatukaisui3.csv",
+        "link_text": "産地別取扱高順位表（CSV：6KB）",
+        "original_name": "santiatukaisui3.csv",
+        "saved": "T12.csv",
+        "bytes": 6694
+      }
+    }
+  },
+  "warnings": [
+    "R/items: ファイル名が既知パターンに一致しない: hinnmokujyuni.csv",
+    "R/origins: ファイル名が既知パターンに一致しない: santijyuni.csv",
+    "T/items: ファイル名が既知パターンに一致しない: himmokuatukaisui3.csv",
+    "T/origins: ファイル名が既知パターンに一致しない: santiatukaisui3.csv"
+  ],
+  "fetched_at": "2026-10-15T04:40:03+00:00",
+  "status": "ok"
+}

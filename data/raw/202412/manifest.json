@@ -1,0 +1,54 @@
+{
+  "year_month": "2024-12",
+  "link_text": "2024年12月分　新潟市中央卸売市場月報",
+  "page_url": "https://www.city.niigata.lg.jp/shisei/seisaku/it/open-data/opendata-keizai/od-ichibageppou/ichibageppou202412.html",
+  "released": "2025年1月15日",
+  "note": "本ファイルは、2024年12月分の青果部及び水産物部の卸売状況等のデータです。",
+  "division_headings": [
+    "青果部",
+    "水産物部"
+  ],
+  "csv_links_total": 16,
+  "divisions": {
+    "R": {
+      "items": {
+        "url": "https://www.city.niigata.lg.jp/shisei/seisaku/it/open-data/opendata-keizai/od-ichibageppou/ichibageppou202412.files/202412-r11.csv",
+        "link_text": "品目別取扱高順位表（CSV：3KB）",
+        "original_name": "202412-r11.csv",
+        "saved": "R11.csv",
+        "bytes": 3180
+      },
+      "origins": {
+        "url": "https://www.city.niigata.lg.jp/shisei/seisaku/it/open-data/opendata-keizai/od-ichibageppou/ichibageppou202412.files/202412-r12.csv",
+        "link_text": "産地別取扱高順位表（CSV：3KB）",
+        "original_name": "202412-r12.csv",
+        "saved": "R12.csv",
+        "bytes": 3890
+      }
+    },
+    "T": {
+      "items": {
+        "url": "https://www.city.niigata.lg.jp/shisei/seisaku/it/open-data/opendata-keizai/od-ichibageppou/ichibageppou202412.files/202412-t11.csv",
+        "link_text": "品目別取扱高順位表（CSV：6KB）",
+        "original_name": "202412-t11.csv",
+        "saved": "T11.csv",
+        "bytes": 6159
+      },
+      "origins": {
+        "url": "https://www.city.niigata.lg.jp/shisei/seisaku/it/open-data/opendata-keizai/od-ichibageppou/ichibageppou202412.files/202412-t12.csv",
+        "link_text": "産地別取扱高順位表（CSV：6KB）",
+        "original_name": "202412-t12.csv",
+        "saved": "T12.csv",
+        "bytes": 6650
+      }
+    }
+  },
+  "warnings": [
+    "R/items: ファイル名が既知パターンに一致しない: 202412-r11.csv",
+    "R/origins: ファイル名が既知パターンに一致しない: 202412-r12.csv",
+    "T/items: ファイル名が既知パターンに一致しない: 202412-t11.csv",
+    "T/origins: ファイル名が既知パターンに一致しない: 202412-t12.csv"
+  ],
+  "fetched_at": "2026-10-15T04:40:52+00:00",
+  "status": "ok"
+}
