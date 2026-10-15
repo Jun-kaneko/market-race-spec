@@ -81,31 +81,46 @@ docs/
 
 不規則な点は [HANDOVER.md](HANDOVER.md) の 3 章を参照。
 
-## 5. P1 の設計方針
+## 5. P1 の設計（実装済み）
 
 ### 5.1 parse.py
 
-- 入力は `data/raw/YYYYMM/*.csv`。`decode_csv` で読み、どのエンコーディングかをログに残す。
-- 行の分類:
-  - 順位が数字 -> 通常行（21 位以上は破棄）
-  - それ以外で内容のある行 -> 「その他」行（`others.csv` へ）
-- 大品目は空欄なら直前の値を引き継ぐ。年月は CSV の列から取り、空欄行はファイルの値で補う。
-- 列名は `［…］` の注記を除いた基本名で位置を決める。単位は `数量合計［(.+)］` から取り、無ければ部門で補う（R/T=kg、V=本/鉢）。
-- `主要産地`/`主要品目` は `・` と `、` で分割する。
-- 数値は `int`/`float` に変換し、読めない値は例外にして月ごとに集計する（検査 7.1-4）。
-- 内容チェック: 大品目が部門の想定集合に入らない場合は、別名辞書で解決する。解決できなければそのファイルを除外し、レポートに残す（2024-05 R11 が該当）。
+- 入力は `data/raw/YYYYMM/manifest.json` と CSV。`decode_csv` で読み、エンコーディングを記録する。
+- 列は列名の基本名（末尾の［…］を除いたもの）で位置を決める。基本名が想定と違えば `ParseError`。
+- 行の分類: 順位が数字なら通常行（21 位以上は除外）、それ以外で内容のある行は「その他」行（`others.csv`）。
+  「その他」行の列ずれ（順位の列に「その他」）や、大品目・年月が入っている場合も同じ扱い。
+- 大品目は空欄なら直前の値を引き継ぐ。大品目は `category_aliases` で正規化し、部門の想定集合に無ければ
+  その行は取り込まず `EXCLUDED_CATEGORY`（欠測）として記録する。
+- 数量の単位は列名から（`㎏` は NFKC で `kg`）。無ければ部門で補い `UNIT_ASSUMED` を記録する。
+- `主要産地`/`主要品目` は `、` と `・` で分割して JSON 配列として保存する。
+- 年月は CSV の列から取り、一覧の月と一致しなければ `ParseError`。数値が読めない、順位が連番でない場合も `ParseError`。
+- 吸収した例外は `Issue(code, year_month, file, message, excluded)` に集める。
+  コード: `CATEGORY_ALIAS` / `EXCLUDED_CATEGORY` / `UNIT_ASSUMED` / `RANK_TRUNCATED` / `FEWER_THAN_20` / `NO_OTHER_ROW` / `MULTIPLE_OTHER_ROWS` / `ENCODING_FALLBACK`
 
 ### 5.2 normalize.py と aliases.yml
 
-- キーは `(category, NFKC(name))`。表示名は最新月の表記。
-- 自動統合は NFKC 一致のみ。意味が違いそうな名前（いなだ/ぶり、その他ぶり/その他ぶり類）は統合しない。
-- `aliases.yml` は「大品目の別名」と「品目の統合ルール」の 2 種類を持てる形にする（初期は大品目の別名のみ）。
-- 統合候補（NFKC 後に近い名前、部分一致など）は一覧で出力して人が決める。
+- キーは NFKC＋空白除去。同じキーは自動で統合し、表示名は最新月の表記に揃える。
+- 同じ月・大品目・種別でキーが重複したら `ParseError`（人が `aliases.yml` で決める）。
+- `aliases.yml`: `category_aliases`（部門 -> 別名）と `name_aliases`（items/origins -> 大品目 -> 旧名: 新名）。
+  品目の統合ルールは初期は空。
+- 統合候補: 同じ大品目・種別の中で、部分一致または文字列類似度 0.8 以上のペアを `merge_candidates.csv` に出す。
+  `never_together`（同月に共存しない）は改名・分類移動の可能性が高い。「その他」単独との一致は除く。
 
-### 5.3 出力
+### 5.3 build.py の出力
 
-仕様 5.3（縦持ちスキーマ）と 5.5（`market.json`）に従う。TOP20 圏外の月は `null`（0 ではない）。
-欠測月（2024-05 青果品目別）は `null` とは別に扱うかを未決（HANDOVER 8 章）。
+- `data/processed/items.csv` / `origins.csv`: 仕様 5.3 のスキーマ。`related` は JSON 配列文字列。
+- `others.csv`: `year_month, category, kind, qty, amt, qty_ratio, amt_ratio`（欠けた値は空欄）。
+- `report.md`: 件数・文字コード・例外一覧。`merge_candidates.csv`: 統合候補。
+- `web/public/data/market.json`: 仕様 5.5 に加え `meta.categories[].first_month` と `meta.missing` を持つ。
+  - 配列は `meta.months`（一覧の月、44）と同じ長さ。圏外・データ無しは `null`。
+  - `meta.missing`: 取り込めなかった月（部門・種別単位で、その部門の全大品目に付く）。
+  - 品目は期間中の数量合計の降順。
+
+### 5.4 テスト
+
+- `tests/test_etl_unit.py`: 合成データでの parse / normalize / build の挙動と、CSV 二重エスケープの回帰（生テキストで確認）。
+- `tests/test_data.py`: 実データでの SPEC 7.1 / 7.2。既知の元データ不具合は `EXPECTED_ISSUES` と
+  `RATIO_EXCEPTIONS` に明示し、過不足があれば落ちる（元データの変化を検知する）。
 
 ## 6. フロントの設計方針（P2 以降）
 

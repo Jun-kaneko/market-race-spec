@@ -55,3 +55,24 @@ def decode_csv(data: bytes) -> tuple[str, str]:
         return data.decode("utf-8-sig"), "utf-8-sig"
     except UnicodeDecodeError:
         return data.decode("cp932"), "cp932"
+
+
+# ---- P1 で追加 ----
+
+CONFIG_DIR = ROOT / "etl" / "config"
+ALIASES_PATH = CONFIG_DIR / "aliases.yml"
+WEB_DATA_DIR = ROOT / "web" / "public" / "data"
+
+MAX_RANK = 20
+
+# 列名に単位が無い月のフォールバック（部門ごと）
+DEFAULT_UNITS = {"R": "kg", "T": "kg", "V": "本/鉢"}
+
+# 大品目の表示順（部門コードも対応づける）
+CATEGORY_ORDER = [
+    ("生鮮水産物", "T"), ("冷凍水産物", "T"), ("塩干・加工品その他", "T"),
+    ("野菜", "R"), ("果実", "R"),
+    ("切花類", "V"), ("鉢物類", "V"),
+]
+
+KIND_LABEL = {"11": "items", "12": "origins"}
