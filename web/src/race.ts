@@ -32,7 +32,10 @@ export class Race {
   constructor(el: HTMLElement, data: MarketData) {
     this.chart = echarts.init(el);
     this.data = data;
-    window.addEventListener('resize', () => this.chart.resize());
+    window.addEventListener('resize', () => {
+      this.chart.resize();
+      if (this.cfg) this.chart.setOption(this.layout());
+    });
   }
 
   setStepMs(ms: number) {
@@ -62,7 +65,7 @@ export class Race {
       animationDurationUpdate: this.stepMs,
       animationEasing: 'linear',
       animationEasingUpdate: 'linear',
-      grid: { top: 8, bottom: 28, left: 8, right: 76, containLabel: true },
+      ...this.layout(),
       tooltip: {
         trigger: 'item',
         confine: true,
@@ -79,7 +82,10 @@ export class Race {
         type: 'category',
         inverse: true,
         max: topN - 1,
-        axisLabel: { show: true, fontSize: 14, width: 96, overflow: 'truncate' },
+        // 項目名は左の固定幅ガターに右寄せで収め、棒（grid 内）と重ならないようにする
+        axisLabel: { ...this.layout().yAxis.axisLabel },
+        axisLine: { show: false },
+        axisTick: { show: false },
         animationDuration: 300,
         animationDurationUpdate: 300,
       },
@@ -103,6 +109,27 @@ export class Race {
         },
       ],
     });
+  }
+
+  /** 項目名ガターの幅は画面幅に応じて固定する。grid は左端をガター幅だけ空ける */
+  private layout() {
+    const w = this.chart.getWidth();
+    const gutter = Math.round(Math.min(150, Math.max(92, w * 0.3)));
+    return {
+      grid: { top: 8, bottom: 28, left: gutter, right: 84, containLabel: false },
+      yAxis: {
+        axisLabel: {
+          show: true,
+          fontSize: 14,
+          width: gutter - 14,
+          overflow: 'truncate' as const,
+          ellipsis: '…',
+          align: 'right' as const,
+          margin: 10,
+          interval: 0,
+        },
+      },
+    };
   }
 
   get currentFrame() {
