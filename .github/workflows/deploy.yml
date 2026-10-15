@@ -1,0 +1,111 @@
+name: update-and-deploy
+
+# 毎月 20 日 10:00 JST（UTC 01:00）に新しい月を取得して公開する。
+# 手動実行（workflow_dispatch）と、main への push（UI 修正の反映）でも動く。
+on:
+  schedule:
+    - cron: "0 1 20 * *"
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "web/**"
+      - "etl/**"
+      - "tests/**"
+      - "data/raw/**"
+      - "requirements.txt"
+      - ".github/workflows/deploy.yml"
+
+permissions:
+  contents: write   # 取得した data/raw と生成物をリポジトリへコミットする
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      fetch_failed: ${{ steps.fetch.outputs.failed }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      # 未取得の月だけ取得する。失敗しても公開済みデータでのデプロイは続け、
+      # 最後の alert ジョブでワークフローを失敗させて通知する。
+      - name: Fetch new months
+        id: fetch
+        if: github.event_name != 'push'
+        run: |
+          if python -m etl.fetch; then
+            echo "failed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "failed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build processed data and market.json
+        run: python -m etl.build
+
+      # EXPECTED_ISSUES に無い元データの例外が出るとここで落ちる（構造変更の合図）
+      - name: Test
+        run: pytest
+
+      # 新しい月の CSV / 一覧が増えたときだけコミットする。
+      # report.md や market.json の生成日は毎回変わるため、それだけの差分ではコミットしない。
+      - name: Commit updated data
+        if: github.event_name != 'push'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A data/raw/[0-9]* data/raw/index.json
+          if git diff --cached --quiet; then
+            echo "no new months"
+          else
+            git add -A data web/public/data
+            git commit -m "data: 月報データを更新 ($(date -u +%Y-%m-%d))"
+            git push
+          fi
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Build web
+        working-directory: web
+        run: |
+          npm ci
+          npm run build
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: web/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
+
+  alert:
+    needs: [build, deploy]
+    if: ${{ always() && needs.build.outputs.fetch_failed == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo "月報CSVの取得に失敗した月があります。data/raw/report.md と fetch のログを確認してください。"
+          exit 1
