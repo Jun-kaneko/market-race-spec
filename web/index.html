@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>新潟市場バーチャートレース</title>
+    <meta name="description" content="新潟市中央卸売市場の月報データから、品目別・産地別の取扱量の月次推移をバーチャートレースで見せます。" />
+  </head>
+  <body>
+    <div id="app">
+      <header>
+        <h1>新潟市場バーチャートレース</h1>
+        <p class="sub">新潟市中央卸売市場 月報（2023年1月〜）</p>
+      </header>
+
+      <section class="controls" aria-label="表示設定">
+        <label>大品目
+          <select id="category"></select>
+        </label>
+        <label>軸
+          <select id="axis">
+            <option value="items">品目</option>
+            <option value="origins">産地</option>
+          </select>
+        </label>
+        <label>指標
+          <select id="metric">
+            <option value="qty">数量</option>
+            <option value="amt">金額</option>
+          </select>
+        </label>
+        <label>表示件数
+          <select id="topn">
+            <option value="10">TOP10</option>
+            <option value="20">TOP20</option>
+          </select>
+        </label>
+      </section>
+
+      <p id="notice" class="notice" hidden></p>
+
+      <section class="stage">
+        <div id="chart" role="img" aria-label="バーチャートレース"></div>
+        <div id="month" class="month" aria-live="off"></div>
+      </section>
+
+      <section class="player" aria-label="再生">
+        <button id="play" type="button">▶ 再生</button>
+        <button id="restart" type="button">⏮ 最初から</button>
+        <label class="speed">速度
+          <select id="speed">
+            <option value="0.5">0.5x</option>
+            <option value="1" selected>1x</option>
+            <option value="2">2x</option>
+          </select>
+        </label>
+        <input id="slider" type="range" min="0" max="0" value="0" aria-label="月" />
+      </section>
+
+      <footer>
+        <p>
+          このサイトは以下の著作物を改変して利用しています。<br />
+          新潟市中央卸売市場月報、新潟市、
+          <a href="https://creativecommons.org/licenses/by/2.1/jp/" target="_blank" rel="noopener">クリエイティブ・コモンズ・ライセンス 表示 2.1 日本</a>
+        </p>
+        <p>本サイトは新潟市が作成・保証したものではありません。</p>
+      </footer>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
