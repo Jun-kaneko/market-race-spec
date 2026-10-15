@@ -59,3 +59,35 @@ button { cursor: pointer; background: var(--accent); color: #fff; border-color: 
 footer { margin-top: 20px; font-size: 0.78rem; color: var(--muted); }
 footer p { margin: 0 0 6px; }
 footer a { color: var(--accent); }
+
+/* PC（広め・高さに余裕のある画面）: 1 画面に収め、グラフが残りの高さを埋める */
+@media (min-width: 720px) and (min-height: 560px) {
+  #app {
+    height: 100vh;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+  header { display: flex; align-items: baseline; gap: 12px; }
+  h1 { font-size: 1.1rem; }
+  .sub { margin: 0; font-size: 0.8rem; }
+
+  .controls { grid-template-columns: repeat(5, 1fr); margin-bottom: 6px; }
+  select, button { min-height: 36px; }
+
+  .notice { margin-bottom: 6px; padding: 6px 10px; font-size: 0.8rem; }
+  .captions { margin-bottom: 6px; min-height: 3.2rem; }
+  .captions li { padding: 4px 10px; font-size: 0.9rem; }
+
+  .stage { flex: 1 1 0; min-height: 240px; }
+  #chart { height: 100%; min-height: 0; }
+
+  .player { flex-wrap: nowrap; margin-top: 8px; align-items: flex-end; }
+  .player button { flex: 0 0 auto; }
+  #slider { flex: 1 1 auto; min-height: 36px; }
+
+  footer { margin-top: 8px; font-size: 0.72rem; line-height: 1.4; }
+  footer p { margin: 0 0 2px; }
+}

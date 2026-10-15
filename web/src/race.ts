@@ -32,10 +32,11 @@ export class Race {
   constructor(el: HTMLElement, data: MarketData) {
     this.chart = echarts.init(el);
     this.data = data;
-    window.addEventListener('resize', () => {
+    // 注記の表示切替やウィンドウサイズ変更でグラフ領域の高さ・幅が変わるため、要素を監視する
+    new ResizeObserver(() => {
       this.chart.resize();
       if (this.cfg) this.chart.setOption(this.layout());
-    });
+    }).observe(el);
   }
 
   setStepMs(ms: number) {
