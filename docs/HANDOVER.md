@@ -161,6 +161,8 @@ pytest                                   # 36 テスト。実データ検証は 
 
 ### 9.1 公開（GitHub Pages）と月次ジョブ
 
+仕組みの解説は [DEPLOY.md](DEPLOY.md) を参照。
+
 `.github/workflows/deploy.yml`（update-and-deploy）:
 
 - **起動**: 毎月 20 日 10:00 JST（cron）、手動（workflow_dispatch）、`web/** etl/** tests/** data/raw/**` を変える main への push。
