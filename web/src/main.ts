@@ -2,6 +2,7 @@ import './style.css';
 import { buildFrames, formatMonth, loadData } from './data';
 import type { Axis, MarketData, Metric } from './data';
 import { buildCaptions } from './captions';
+import { seasonOf } from './season';
 import { Race } from './race';
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -26,6 +27,9 @@ async function main() {
   const monthEl = $('month');
   const notice = $('notice');
   const captionsEl = $('captions');
+  const stageEl = document.querySelector<HTMLElement>('.stage')!;
+  const seasonIcon = $('season-icon');
+  const seasonLabel = $('season-label');
 
   for (const c of data.meta.categories) catSel.add(new Option(c.name, c.name));
   catSel.value = '生鮮水産物';
@@ -43,6 +47,15 @@ async function main() {
     const f = currentFrames();
     currentMonth = f.months[i];
     monthEl.textContent = formatMonth(currentMonth);
+    const se = seasonOf(currentMonth);
+    if (seasonIcon.textContent !== se.icon) {
+      seasonIcon.textContent = se.icon;
+      seasonIcon.classList.remove('pop');
+      void seasonIcon.offsetWidth; // アニメーションを再始動
+      seasonIcon.classList.add('pop');
+    }
+    seasonLabel.textContent = `${se.season}・${se.motif}`;
+    stageEl.style.setProperty('--stage-bg', se.tint);
     const caps = buildCaptions(
       data, catSel.value, axisSel.value as Axis, metricSel.value as Metric,
       f, i, Number(topSel.value),

@@ -43,7 +43,13 @@
 
       <section class="stage">
         <div id="chart" role="img" aria-label="バーチャートレース"></div>
-        <div id="month" class="month" aria-live="off"></div>
+        <div class="month" aria-live="off">
+          <span id="season-icon" class="season-icon" aria-hidden="true"></span>
+          <span class="month-text">
+            <span id="season-label" class="season-label"></span>
+            <span id="month"></span>
+          </span>
+        </div>
       </section>
 
       <section class="player" aria-label="再生">

@@ -33,12 +33,22 @@ button { cursor: pointer; background: var(--accent); color: #fff; border-color: 
   padding: 6px 10px; font-size: 0.95rem; font-weight: 600;
   background: #e8f1f6; border-left: 4px solid var(--accent); border-radius: 4px;
 }
-.stage { position: relative; background: #fff; border: 1px solid var(--line); border-radius: 12px; }
+.stage { position: relative; background: var(--stage-bg, #fff); border: 1px solid var(--line); border-radius: 12px; }
 #chart { width: 100%; height: min(70vh, 520px); min-height: 360px; }
 .month {
   position: absolute; right: 12px; bottom: 36px;
-  font-size: clamp(1.8rem, 8vw, 3.2rem); font-weight: 700;
-  color: rgba(29, 35, 48, 0.28); pointer-events: none; font-variant-numeric: tabular-nums;
+  display: flex; align-items: center; gap: 8px;
+  color: rgba(29, 35, 48, 0.4); pointer-events: none;
+}
+.month-text { display: flex; flex-direction: column; align-items: flex-end; line-height: 1.1; }
+#month { font-size: clamp(1.8rem, 8vw, 3.2rem); font-weight: 700; font-variant-numeric: tabular-nums; }
+.season-label { font-size: clamp(0.8rem, 3vw, 1rem); font-weight: 600; }
+.season-icon { font-size: clamp(2rem, 9vw, 3.4rem); line-height: 1; }
+.season-icon.pop { animation: season-pop 0.5s ease; }
+@keyframes season-pop { from { opacity: 0; transform: scale(0.6); } to { opacity: 1; transform: scale(1); } }
+@media (prefers-reduced-motion: reduce) {
+  .season-icon.pop { animation: none; }
+  .stage { transition: none; }
 }
 
 .player { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end; margin-top: 10px; }
