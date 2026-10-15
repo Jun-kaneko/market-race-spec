@@ -33,7 +33,7 @@ button { cursor: pointer; background: var(--accent); color: #fff; border-color: 
   padding: 6px 10px; font-size: 0.95rem; font-weight: 600;
   background: #e8f1f6; border-left: 4px solid var(--accent); border-radius: 4px;
 }
-.stage { position: relative; background: var(--stage-bg, #fff); border: 1px solid var(--line); border-radius: 12px; }
+.stage { position: relative; transition: background-color 0.6s ease; background: var(--stage-bg, #fff); border: 1px solid var(--line); border-radius: 12px; }
 #chart { width: 100%; height: min(70vh, 520px); min-height: 360px; }
 .month {
   position: absolute; right: 12px; bottom: 36px;
