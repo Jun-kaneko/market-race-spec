@@ -2,8 +2,8 @@ import * as echarts from 'echarts/core';
 import { BarChart } from 'echarts/charts';
 import { DatasetComponent, GridComponent, TooltipComponent } from 'echarts/components';
 import { CanvasRenderer } from 'echarts/renderers';
-import type { Axis, CategoryMeta, Frames, MarketData, Metric } from './data';
-import { rankMap } from './data';
+import type { Axis, CategoryMeta, Frames, MarketData, Metric, Mode, ValueTable } from './data';
+import { rankAt, valueTable } from './data';
 import { colorOf } from './colors';
 import { exact, formatValue } from './format';
 
@@ -13,6 +13,7 @@ export interface RaceConfig {
   category: CategoryMeta;
   axis: Axis;
   metric: Metric;
+  mode: Mode;
   topN: number;
   frames: Frames;
 }
@@ -24,6 +25,9 @@ export class Race {
   private data: MarketData;
   private frame = 0;
   private stepMs = 1000;
+  /** 指標（数量/金額）ごとの値テーブル。モードは cfg.mode に従う */
+  private tables!: Record<Metric, ValueTable>;
+  private monthlyQty!: ValueTable;
 
   constructor(el: HTMLElement, data: MarketData) {
     this.chart = echarts.init(el);
@@ -42,6 +46,12 @@ export class Race {
   /** 大品目・軸・指標・件数のいずれかが変わったとき、グラフを作り直す */
   configure(cfg: RaceConfig, frame = 0) {
     this.cfg = cfg;
+    const { category: c, axis: a, frames: f } = cfg;
+    this.tables = {
+      qty: valueTable(this.data, c.name, a, 'qty', cfg.mode, f),
+      amt: valueTable(this.data, c.name, a, 'amt', cfg.mode, f),
+    };
+    this.monthlyQty = valueTable(this.data, c.name, a, 'qty', 'month', f);
     this.frame = Math.min(frame, cfg.frames.months.length - 1);
     const unit = cfg.category.qty_unit;
     const { metric, topN } = cfg;
@@ -62,7 +72,7 @@ export class Race {
       xAxis: {
         max: 'dataMax',
         axisLabel: { formatter: (v: number) => fmt(v), fontSize: 12 },
-        name: metric === 'amt' ? '円' : unit,
+        name: (cfg.mode === 'cum' ? '累計 ' : '') + (metric === 'amt' ? '円' : unit),
         nameLocation: 'end',
       },
       yAxis: {
@@ -104,44 +114,46 @@ export class Race {
     this.chart.setOption({ dataset: { source: this.rows() } });
   }
 
-  private seriesOf(name: string) {
-    return this.data[this.cfg.axis][this.cfg.category.name]?.[name];
+  /** 現在のフレームの値テーブル（指標に対応）。ダッシュボード側のキャプション判定でも使う */
+  get table(): ValueTable {
+    return this.tables[this.cfg.metric];
   }
 
   private rows(): (string | number)[][] {
-    const { frames, metric } = this.cfg;
-    const mi = frames.monthIdx[this.frame];
     const rows: (string | number)[][] = [['name', 'value']];
-    for (const name of frames.names) {
+    for (const name of this.cfg.frames.names) {
       // TOP20 圏外（null）は 0 として渡す。TOP10 表示では棒として現れない
-      rows.push([name, this.seriesOf(name)?.[metric][mi] ?? 0]);
+      rows.push([name, this.table.get(name)?.[this.frame] ?? 0]);
     }
     return rows;
   }
 
   private tooltip(name: string): string {
-    const { frames, category, axis } = this.cfg;
-    const s = this.seriesOf(name);
+    const { frames, category, axis, mode } = this.cfg;
     const mi = frames.monthIdx[this.frame];
     const unit = category.qty_unit;
+    const s = this.data[axis][category.name]?.[name];
     const rel = (axis === 'items' ? s?.origins : s?.items)?.[mi];
     const relLabel = axis === 'items' ? '主要産地' : '主要品目';
-    const rankAt = (f: number) =>
-      rankMap(this.data, category.name, axis, this.cfg.metric, frames.monthIdx[f]).get(name);
-    const rank = rankAt(this.frame);
-    let rankLine = rank ? `${rank}位` : 'TOP20圏外';
+    const none = mode === 'cum' ? '未集計' : 'TOP20圏外';
+    const rankOf = (f: number) => rankAt(this.table, f).get(name);
+    const rank = rankOf(this.frame);
+    let rankLine = rank ? `${rank}位` : none;
     if (this.frame > 0) {
-      const pr = rankAt(this.frame - 1);
+      const pr = rankOf(this.frame - 1);
       const consecutive = mi - frames.monthIdx[this.frame - 1] === 1;
-      rankLine += `（${consecutive ? '前月' : '前回'} ${pr ? `${pr}位` : 'TOP20圏外'}）`;
+      rankLine += `（${consecutive ? '前月' : '前回'} ${pr ? `${pr}位` : none}）`;
     }
-    return [
+    const pre = mode === 'cum' ? '累計' : '';
+    const lines = [
       `<b>${name}</b>`,
       `順位: ${rankLine}`,
-      `数量: ${exact(s?.qty[mi], unit)}`,
-      `金額: ${exact(s?.amt[mi], '円')}`,
-      rel && rel.length ? `${relLabel}: ${rel.slice(0, 3).join('、')}` : '',
-    ].filter(Boolean).join('<br>');
+      `${pre}数量: ${exact(this.tables.qty.get(name)?.[this.frame], unit)}`,
+      `${pre}金額: ${exact(this.tables.amt.get(name)?.[this.frame], '円')}`,
+    ];
+    if (mode === 'cum') lines.push(`当月数量: ${exact(this.monthlyQty.get(name)?.[this.frame], unit)}`);
+    if (rel && rel.length) lines.push(`${relLabel}: ${rel.slice(0, 3).join('、')}`);
+    return lines.join('<br>');
   }
 
   dispose() {

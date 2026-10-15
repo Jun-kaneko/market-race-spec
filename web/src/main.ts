@@ -1,6 +1,6 @@
 import './style.css';
 import { buildFrames, formatMonth, loadData } from './data';
-import type { Axis, MarketData, Metric } from './data';
+import type { Axis, MarketData, Metric, Mode } from './data';
 import { buildCaptions } from './captions';
 import { seasonOf } from './season';
 import { Race } from './race';
@@ -19,6 +19,7 @@ async function main() {
   const catSel = $<HTMLSelectElement>('category');
   const axisSel = $<HTMLSelectElement>('axis');
   const metricSel = $<HTMLSelectElement>('metric');
+  const modeSel = $<HTMLSelectElement>('mode');
   const topSel = $<HTMLSelectElement>('topn');
   const speedSel = $<HTMLSelectElement>('speed');
   const playBtn = $<HTMLButtonElement>('play');
@@ -56,10 +57,7 @@ async function main() {
     }
     seasonLabel.textContent = `${se.season}・${se.motif}`;
     stageEl.style.setProperty('--stage-bg', se.tint);
-    const caps = buildCaptions(
-      data, catSel.value, axisSel.value as Axis, metricSel.value as Metric,
-      f, i, Number(topSel.value),
-    );
+    const caps = buildCaptions(race.table, modeSel.value as Mode, f, i, Number(topSel.value));
     captionsEl.replaceChildren(
       ...caps.map((t) => Object.assign(document.createElement('li'), { textContent: t })),
     );
@@ -75,6 +73,9 @@ async function main() {
     const lines: string[] = [];
     if (metricSel.value === 'amt') {
       lines.push('金額は「数量上位20位の中での金額順」です。金額が大きくても数量が少ない品目は含まれない場合があります。');
+    }
+    if (modeSel.value === 'cum') {
+      lines.push('累計は「TOP20 に入った月」の合計です。圏外の月は含まれないため、実際の累計より少なく出る品目があります。');
     }
     if (cat.first_month > data.meta.months[0]) {
       lines.push(`${cat.name}は ${formatMonth(cat.first_month)} からのデータです。`);
@@ -123,6 +124,7 @@ async function main() {
       category,
       axis: axisSel.value as Axis,
       metric: metricSel.value as Metric,
+      mode: modeSel.value as Mode,
       topN: Number(topSel.value),
       frames: f,
     }, frame);
@@ -130,7 +132,7 @@ async function main() {
     updateNotice();
   }
 
-  [catSel, axisSel, metricSel, topSel].forEach((el) =>
+  [catSel, axisSel, metricSel, modeSel, topSel].forEach((el) =>
     el.addEventListener('change', () => {
       rebuild(el !== catSel);
     }),

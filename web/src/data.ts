@@ -67,17 +67,46 @@ export function formatMonth(m: string): string {
   return `${y}年${Number(mo)}月`;
 }
 
-/** ある月の順位（1 始まり）。値が null の項目は含まない */
-export function rankMap(
+export type Mode = 'month' | 'cum';
+
+/** 項目名 → フレーム順の値。累計は「TOP20 に入った月」の合計（圏外の月は含まれない） */
+export type ValueTable = Map<string, (number | null)[]>;
+
+export function valueTable(
   data: MarketData,
   category: string,
   axis: Axis,
   metric: Metric,
-  monthIdx: number,
-): Map<string, number> {
+  mode: Mode,
+  frames: Frames,
+): ValueTable {
+  const series = data[axis][category] ?? {};
+  const table: ValueTable = new Map();
+  for (const name of frames.names) {
+    const raw = series[name][metric];
+    let acc = 0;
+    let seen = false;
+    table.set(
+      name,
+      frames.monthIdx.map((mi) => {
+        const v = raw[mi];
+        if (mode === 'month') return v;
+        if (v != null) {
+          acc += v;
+          seen = true;
+        }
+        return seen ? acc : null;
+      }),
+    );
+  }
+  return table;
+}
+
+/** あるフレームの順位（1 始まり）。値が null の項目は含まない */
+export function rankAt(table: ValueTable, frame: number): Map<string, number> {
   const rows: [string, number][] = [];
-  for (const [name, s] of Object.entries(data[axis][category] ?? {})) {
-    const v = s[metric][monthIdx];
+  for (const [name, vals] of table) {
+    const v = vals[frame];
     if (v != null) rows.push([name, v]);
   }
   rows.sort((a, b) => b[1] - a[1]);
