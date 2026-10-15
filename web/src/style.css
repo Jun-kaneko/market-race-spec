@@ -25,6 +25,14 @@ button { cursor: pointer; background: var(--accent); color: #fff; border-color: 
 
 .notice { margin: 0 0 8px; padding: 8px 10px; font-size: 0.85rem; background: #fff6df; border: 1px solid #ecd28a; border-radius: 8px; }
 
+.captions {
+  list-style: none; margin: 0 0 8px; padding: 0; min-height: 3.6rem;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.captions li {
+  padding: 6px 10px; font-size: 0.95rem; font-weight: 600;
+  background: #e8f1f6; border-left: 4px solid var(--accent); border-radius: 4px;
+}
 .stage { position: relative; background: #fff; border: 1px solid var(--line); border-radius: 12px; }
 #chart { width: 100%; height: min(70vh, 520px); min-height: 360px; }
 .month {

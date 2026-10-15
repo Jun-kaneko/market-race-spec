@@ -1,6 +1,7 @@
 import './style.css';
 import { buildFrames, formatMonth, loadData } from './data';
 import type { Axis, MarketData, Metric } from './data';
+import { buildCaptions } from './captions';
 import { Race } from './race';
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -24,6 +25,7 @@ async function main() {
   const slider = $<HTMLInputElement>('slider');
   const monthEl = $('month');
   const notice = $('notice');
+  const captionsEl = $('captions');
 
   for (const c of data.meta.categories) catSel.add(new Option(c.name, c.name));
   catSel.value = '生鮮水産物';
@@ -41,6 +43,13 @@ async function main() {
     const f = currentFrames();
     currentMonth = f.months[i];
     monthEl.textContent = formatMonth(currentMonth);
+    const caps = buildCaptions(
+      data, catSel.value, axisSel.value as Axis, metricSel.value as Metric,
+      f, i, Number(topSel.value),
+    );
+    captionsEl.replaceChildren(
+      ...caps.map((t) => Object.assign(document.createElement('li'), { textContent: t })),
+    );
   }
 
   function currentFrames() {

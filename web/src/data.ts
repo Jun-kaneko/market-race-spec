@@ -66,3 +66,20 @@ export function formatMonth(m: string): string {
   const [y, mo] = m.split('-');
   return `${y}年${Number(mo)}月`;
 }
+
+/** ある月の順位（1 始まり）。値が null の項目は含まない */
+export function rankMap(
+  data: MarketData,
+  category: string,
+  axis: Axis,
+  metric: Metric,
+  monthIdx: number,
+): Map<string, number> {
+  const rows: [string, number][] = [];
+  for (const [name, s] of Object.entries(data[axis][category] ?? {})) {
+    const v = s[metric][monthIdx];
+    if (v != null) rows.push([name, v]);
+  }
+  rows.sort((a, b) => b[1] - a[1]);
+  return new Map(rows.map(([name], i) => [name, i + 1]));
+}

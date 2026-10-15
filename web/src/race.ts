@@ -3,6 +3,7 @@ import { BarChart } from 'echarts/charts';
 import { DatasetComponent, GridComponent, TooltipComponent } from 'echarts/components';
 import { CanvasRenderer } from 'echarts/renderers';
 import type { Axis, CategoryMeta, Frames, MarketData, Metric } from './data';
+import { rankMap } from './data';
 import { colorOf } from './colors';
 import { exact, formatValue } from './format';
 
@@ -125,8 +126,18 @@ export class Race {
     const unit = category.qty_unit;
     const rel = (axis === 'items' ? s?.origins : s?.items)?.[mi];
     const relLabel = axis === 'items' ? '主要産地' : '主要品目';
+    const rankAt = (f: number) =>
+      rankMap(this.data, category.name, axis, this.cfg.metric, frames.monthIdx[f]).get(name);
+    const rank = rankAt(this.frame);
+    let rankLine = rank ? `${rank}位` : 'TOP20圏外';
+    if (this.frame > 0) {
+      const pr = rankAt(this.frame - 1);
+      const consecutive = mi - frames.monthIdx[this.frame - 1] === 1;
+      rankLine += `（${consecutive ? '前月' : '前回'} ${pr ? `${pr}位` : 'TOP20圏外'}）`;
+    }
     return [
       `<b>${name}</b>`,
+      `順位: ${rankLine}`,
       `数量: ${exact(s?.qty[mi], unit)}`,
       `金額: ${exact(s?.amt[mi], '円')}`,
       rel && rel.length ? `${relLabel}: ${rel.slice(0, 3).join('、')}` : '',
